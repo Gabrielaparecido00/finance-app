@@ -1,168 +1,211 @@
-```html
 <!DOCTYPE html>
-<html>
+<html lang="pt">
 <head>
+
 <meta charset="UTF-8">
-<title>Finance Manager</title>
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+<title>Finance AI</title>
+
+<script src="https://cdn.tailwindcss.com"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
 
 <style>
 
 body{
-font-family: Arial;
-background:#f2f2f2;
-padding:40px;
+background:#0f172a;
+color:white;
 }
 
-.container{
-background:white;
-padding:30px;
-border-radius:10px;
-max-width:900px;
-margin:auto;
-}
-
-input,button,select{
-padding:10px;
-margin:5px;
-}
-
-table{
-width:100%;
-margin-top:20px;
-border-collapse:collapse;
-}
-
-td,th{
-border:1px solid #ddd;
-padding:8px;
-}
-
-.menu{
-margin-bottom:20px;
-}
-
-.section{
-display:none;
-}
-
-.active{
-display:block;
+.card{
+background:#1e293b;
+border-radius:18px;
+padding:18px;
 }
 
 </style>
+
 </head>
 
-<body>
 
-<div class="container">
+<body class="p-4">
 
-<h2>Finance Manager</h2>
+<div class="max-w-4xl mx-auto">
 
-<div id="login">
+<h1 class="text-3xl font-bold mb-6 text-purple-400">
+Finance AI
+</h1>
 
-<input id="email" placeholder="email">
-<input id="password" type="password" placeholder="senha">
+<!-- LOGIN -->
 
-<button onclick="register()">Registrar</button>
-<button onclick="login()">Entrar</button>
+<div id="login" class="card space-y-2">
+
+<input id="email" placeholder="email"
+class="w-full p-3 rounded text-black">
+
+<input id="password" type="password" placeholder="senha"
+class="w-full p-3 rounded text-black">
+
+<button onclick="register()"
+class="bg-purple-600 w-full p-3 rounded">
+Registrar
+</button>
+
+<button onclick="login()"
+class="bg-green-600 w-full p-3 rounded">
+Entrar
+</button>
 
 </div>
 
 
-<div id="app" style="display:none">
+<div id="app" class="hidden space-y-6">
 
-<div class="menu">
-<button onclick="mostrar('transacoes')">Transações</button>
-<button onclick="mostrar('contas')">Contas Fixas</button>
-<button onclick="mostrar('provisoes')">Provisionamentos</button>
-<button onclick="mostrar('relatorio')">Relatório</button>
-<button onclick="logout()">Sair</button>
+<!-- SALDO -->
+
+<div class="card">
+
+<h2 class="text-gray-400">Saldo Total</h2>
+
+<h1 id="saldoTotal" class="text-4xl font-bold text-green-400">
+R$ 0
+</h1>
+
 </div>
 
 
-<div id="transacoes" class="section active">
+<!-- GRAFICO -->
 
-<h3>Nova Transação</h3>
+<div class="card">
 
-<input id="descricao" placeholder="descrição">
-<input id="valor" type="number" placeholder="valor">
+<canvas id="grafico"></canvas>
 
-<select id="tipo">
+</div>
+
+
+<!-- NOVA TRANSAÇÃO -->
+
+<div class="card space-y-2">
+
+<h3 class="text-purple-400">Nova Transação</h3>
+
+<input id="descricao" placeholder="descrição"
+class="w-full p-2 rounded text-black">
+
+<input id="valor" type="number" placeholder="valor"
+class="w-full p-2 rounded text-black">
+
+<select id="tipo"
+class="w-full p-2 rounded text-black">
+
 <option value="entrada">Receita</option>
 <option value="saida">Despesa</option>
+
 </select>
 
-<input id="data" type="date">
+<input id="data" type="date"
+class="w-full p-2 rounded text-black">
 
-<button onclick="salvarTransacao()">Salvar</button>
-
-<table>
-<thead>
-<tr>
-<th>Descrição</th>
-<th>Valor</th>
-<th>Tipo</th>
-<th>Data</th>
-</tr>
-</thead>
-
-<tbody id="lista"></tbody>
-
-</table>
+<button onclick="salvarTransacao()"
+class="bg-purple-600 w-full p-3 rounded">
+Salvar
+</button>
 
 </div>
 
 
-<div id="contas" class="section">
+<!-- CONTAS RECORRENTES -->
 
-<h3>Conta Fixa</h3>
+<div class="card space-y-2">
 
-<input id="contaNome" placeholder="nome">
-<input id="contaValor" type="number" placeholder="valor">
-<input id="contaVenc" type="number" placeholder="dia vencimento">
+<h3 class="text-blue-400">Conta Recorrente</h3>
 
-<button onclick="salvarConta()">Salvar</button>
+<input id="recNome" placeholder="nome"
+class="w-full p-2 rounded text-black">
 
-<ul id="listaContas"></ul>
+<input id="recValor" type="number" placeholder="valor"
+class="w-full p-2 rounded text-black">
+
+<input id="recDia" type="number" placeholder="dia do mês"
+class="w-full p-2 rounded text-black">
+
+<button onclick="salvarRecorrente()"
+class="bg-blue-600 w-full p-3 rounded">
+Salvar
+</button>
+
+<ul id="listaRec"></ul>
 
 </div>
 
 
-<div id="provisoes" class="section">
+<!-- PROVISÃO -->
 
-<h3>Provisionamento</h3>
+<div class="card space-y-2">
 
-<input id="provNome" placeholder="descrição">
-<input id="provValor" type="number" placeholder="valor total">
-<input id="provMes" placeholder="mes (2026-03)">
+<h3 class="text-yellow-400">Provisionamento</h3>
 
-<button onclick="salvarProv()">Salvar</button>
+<input id="provNome" placeholder="nome"
+class="w-full p-2 rounded text-black">
+
+<input id="provValor" type="number" placeholder="valor total"
+class="w-full p-2 rounded text-black">
+
+<input id="provMes" placeholder="2026-03"
+class="w-full p-2 rounded text-black">
+
+<button onclick="salvarProv()"
+class="bg-yellow-500 w-full p-3 rounded">
+Salvar
+</button>
 
 <ul id="listaProv"></ul>
 
 </div>
 
 
-<div id="relatorio" class="section">
+<!-- INVESTIMENTOS -->
 
-<h3>Relatório Mensal</h3>
+<div class="card space-y-2">
 
-<input id="mesRelatorio" placeholder="2026-03">
+<h3 class="text-green-400">Investimentos</h3>
 
-<button onclick="relatorio()">Gerar</button>
+<input id="invNome" placeholder="ativo"
+class="w-full p-2 rounded text-black">
 
-<h3 id="saldoMes"></h3>
+<input id="invValor" type="number" placeholder="valor"
+class="w-full p-2 rounded text-black">
+
+<button onclick="salvarInvest()"
+class="bg-green-600 w-full p-3 rounded">
+Salvar
+</button>
+
+<ul id="listaInv"></ul>
+
+</div>
+
+
+<!-- TRANSAÇÕES -->
+
+<div class="card">
+
+<h3 class="text-purple-400">Histórico</h3>
+
+<ul id="lista"></ul>
 
 </div>
 
 </div>
 
 </div>
+
 
 
 <script type="module">
 
-import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
 import {
 getAuth,
@@ -185,24 +228,23 @@ getDocs
 from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 
-/* SUA CONFIGURAÇÃO FIREBASE */
-
 const firebaseConfig = {
-  apiKey: "AIzaSyBOQwW7UlpweLNtCOsAUFY7Ds7KaxW8P9U",
-  authDomain: "finance-app-15fcc.firebaseapp.com",
-  projectId: "finance-app-15fcc",
-  storageBucket: "finance-app-15fcc.firebasestorage.app",
-  messagingSenderId: "1074672383107",
-  appId: "1:1074672383107:web:666b30885a928f3a8b57b6",
-  measurementId: "G-8LBL427YR0"
+apiKey: "AIzaSyBOQwW7UlpweLNtCOsAUFY7Ds7KaxW8P9U",
+authDomain: "finance-app-15fcc.firebaseapp.com",
+projectId: "finance-app-15fcc",
+storageBucket: "finance-app-15fcc.firebasestorage.app",
+messagingSenderId: "1074672383107",
+appId: "1:1074672383107:web:666b30885a928f3a8b57b6",
+measurementId: "G-8LBL427YR0"
 };
 
-const app = initializeApp(firebaseConfig);
 
+const app = initializeApp(firebaseConfig);
 const auth = getAuth(app);
 const db = getFirestore(app);
 
-let user;
+let user
+let chart
 
 
 
@@ -210,67 +252,29 @@ onAuthStateChanged(auth,(u)=>{
 
 if(u){
 
-user=u;
+user=u
 
-document.getElementById("login").style.display="none";
-document.getElementById("app").style.display="block";
+document.getElementById("login").classList.add("hidden")
+document.getElementById("app").classList.remove("hidden")
 
-carregarTransacoes();
-carregarContas();
-carregarProv();
-
-}else{
-
-document.getElementById("login").style.display="block";
-document.getElementById("app").style.display="none";
+carregar()
 
 }
 
 })
-
-
-
-window.mostrar = function(id){
-
-document.querySelectorAll(".section").forEach(s=>{
-s.classList.remove("active")
-})
-
-document.getElementById(id).classList.add("active")
-
-}
-
-
-
-async function criarEstruturaUsuario(uid,email){
-
-await setDoc(doc(db,"users",uid),{
-email:email,
-criadoEm:new Date()
-})
-
-await addDoc(
-collection(db,"users",uid,"transacoes"),
-{
-descricao:"Conta criada",
-valor:0,
-tipo:"entrada",
-data:new Date().toISOString().slice(0,10)
-}
-)
-
-}
 
 
 
 window.register = async function(){
 
-let email=document.getElementById("email").value
-let password=document.getElementById("password").value
+let email=emailInput()
+let pass=passInput()
 
-let cred = await createUserWithEmailAndPassword(auth,email,password)
+let cred = await createUserWithEmailAndPassword(auth,email,pass)
 
-await criarEstruturaUsuario(cred.user.uid,email)
+await setDoc(doc(db,"users",cred.user.uid),{
+email
+})
 
 }
 
@@ -278,18 +282,21 @@ await criarEstruturaUsuario(cred.user.uid,email)
 
 window.login = async function(){
 
-let email=document.getElementById("email").value
-let password=document.getElementById("password").value
-
-await signInWithEmailAndPassword(auth,email,password)
+await signInWithEmailAndPassword(auth,emailInput(),passInput())
 
 }
 
 
 
-window.logout = async function(){
+function emailInput(){
 
-await signOut(auth)
+return document.getElementById("email").value
+
+}
+
+function passInput(){
+
+return document.getElementById("password").value
 
 }
 
@@ -302,81 +309,29 @@ let valor=parseFloat(document.getElementById("valor").value)
 let tipo=document.getElementById("tipo").value
 let data=document.getElementById("data").value
 
-await addDoc(
-collection(db,"users",user.uid,"transacoes"),
-{
-descricao,
-valor,
-tipo,
-data
-}
-)
+await addDoc(collection(db,"users",user.uid,"transacoes"),{
+descricao,valor,tipo,data
+})
 
-carregarTransacoes()
+carregar()
 
 }
 
 
 
-async function carregarTransacoes(){
+async function carregar(){
 
-let tbody=document.getElementById("lista")
-tbody.innerHTML=""
+let lista=document.getElementById("lista")
+lista.innerHTML=""
+
+let saldo=0
 
 const q=query(collection(db,"users",user.uid,"transacoes"))
 
 let snapshot=await getDocs(q)
 
-snapshot.forEach(doc=>{
-
-let d=doc.data()
-
-let tr=document.createElement("tr")
-
-tr.innerHTML=`
-<td>${d.descricao}</td>
-<td>${d.valor}</td>
-<td>${d.tipo}</td>
-<td>${d.data}</td>
-`
-
-tbody.appendChild(tr)
-
-})
-
-}
-
-
-
-window.salvarConta = async function(){
-
-let nome=document.getElementById("contaNome").value
-let valor=parseFloat(document.getElementById("contaValor").value)
-let venc=document.getElementById("contaVenc").value
-
-await addDoc(
-collection(db,"users",user.uid,"contas"),
-{
-nome,
-valor,
-vencimento:venc
-}
-)
-
-carregarContas()
-
-}
-
-
-
-async function carregarContas(){
-
-let ul=document.getElementById("listaContas")
-ul.innerHTML=""
-
-const q=query(collection(db,"users",user.uid,"contas"))
-
-let snapshot=await getDocs(q)
+let receitas=0
+let despesas=0
 
 snapshot.forEach(doc=>{
 
@@ -384,10 +339,58 @@ let d=doc.data()
 
 let li=document.createElement("li")
 
-li.innerText=d.nome+" - R$ "+d.valor+" dia "+d.vencimento
+li.innerText=d.descricao+" R$"+d.valor
 
-ul.appendChild(li)
+lista.appendChild(li)
 
+if(d.tipo=="entrada"){
+saldo+=d.valor
+receitas+=d.valor
+}
+else{
+saldo-=d.valor
+despesas+=d.valor
+}
+
+})
+
+document.getElementById("saldoTotal").innerText="R$ "+saldo
+
+grafico(receitas,despesas)
+
+}
+
+
+
+function grafico(receitas,despesas){
+
+if(chart) chart.destroy()
+
+chart=new Chart(
+document.getElementById("grafico"),
+{
+type:"doughnut",
+data:{
+labels:["Receitas","Despesas"],
+datasets:[{
+data:[receitas,despesas]
+}]
+}
+}
+)
+
+}
+
+
+
+window.salvarRecorrente = async function(){
+
+let nome=document.getElementById("recNome").value
+let valor=parseFloat(document.getElementById("recValor").value)
+let dia=document.getElementById("recDia").value
+
+await addDoc(collection(db,"users",user.uid,"recorrentes"),{
+nome,valor,dia
 })
 
 }
@@ -400,72 +403,22 @@ let descricao=document.getElementById("provNome").value
 let valor=parseFloat(document.getElementById("provValor").value)
 let mes=document.getElementById("provMes").value
 
-await addDoc(
-collection(db,"users",user.uid,"provisionamentos"),
-{
-descricao,
-valor,
-mes
-}
-)
-
-carregarProv()
-
-}
-
-
-
-async function carregarProv(){
-
-let ul=document.getElementById("listaProv")
-ul.innerHTML=""
-
-const q=query(collection(db,"users",user.uid,"provisionamentos"))
-
-let snapshot=await getDocs(q)
-
-snapshot.forEach(doc=>{
-
-let d=doc.data()
-
-let li=document.createElement("li")
-
-li.innerText=d.descricao+" - R$ "+d.valor+" ("+d.mes+")"
-
-ul.appendChild(li)
-
+await addDoc(collection(db,"users",user.uid,"provisoes"),{
+descricao,valor,mes
 })
 
 }
 
 
 
-window.relatorio = async function(){
+window.salvarInvest = async function(){
 
-let mes=document.getElementById("mesRelatorio").value
+let nome=document.getElementById("invNome").value
+let valor=parseFloat(document.getElementById("invValor").value)
 
-const q=query(
-collection(db,"users",user.uid,"transacoes")
-)
-
-let snapshot=await getDocs(q)
-
-let saldo=0
-
-snapshot.forEach(doc=>{
-
-let d=doc.data()
-
-if(d.data.startsWith(mes)){
-
-if(d.tipo=="entrada") saldo+=d.valor
-else saldo-=d.valor
-
-}
-
+await addDoc(collection(db,"users",user.uid,"investimentos"),{
+nome,valor
 })
-
-document.getElementById("saldoMes").innerText="Saldo do mês: R$ "+saldo
 
 }
 
@@ -473,4 +426,3 @@ document.getElementById("saldoMes").innerText="Saldo do mês: R$ "+saldo
 
 </body>
 </html>
-```
