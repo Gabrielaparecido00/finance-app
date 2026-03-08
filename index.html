@@ -1,3 +1,4 @@
+```html
 <!DOCTYPE html>
 <html>
 <head>
@@ -20,7 +21,7 @@ max-width:900px;
 margin:auto;
 }
 
-input,button{
+input,button,select{
 padding:10px;
 margin:5px;
 }
@@ -34,6 +35,18 @@ border-collapse:collapse;
 td,th{
 border:1px solid #ddd;
 padding:8px;
+}
+
+.menu{
+margin-bottom:20px;
+}
+
+.section{
+display:none;
+}
+
+.active{
+display:block;
 }
 
 </style>
@@ -55,7 +68,19 @@ padding:8px;
 
 </div>
 
+
 <div id="app" style="display:none">
+
+<div class="menu">
+<button onclick="mostrar('transacoes')">Transações</button>
+<button onclick="mostrar('contas')">Contas Fixas</button>
+<button onclick="mostrar('provisoes')">Provisionamentos</button>
+<button onclick="mostrar('relatorio')">Relatório</button>
+<button onclick="logout()">Sair</button>
+</div>
+
+
+<div id="transacoes" class="section active">
 
 <h3>Nova Transação</h3>
 
@@ -69,14 +94,7 @@ padding:8px;
 
 <input id="data" type="date">
 
-<button onclick="salvar()">Salvar</button>
-
-<h3>Upload de boleto / fatura</h3>
-
-<input type="file" id="arquivo">
-<button onclick="upload()">Upload</button>
-
-<h3>Relatório</h3>
+<button onclick="salvarTransacao()">Salvar</button>
 
 <table>
 <thead>
@@ -87,12 +105,55 @@ padding:8px;
 <th>Data</th>
 </tr>
 </thead>
+
 <tbody id="lista"></tbody>
+
 </table>
 
-<h3 id="total"></h3>
+</div>
 
-<button onclick="logout()">Sair</button>
+
+<div id="contas" class="section">
+
+<h3>Conta Fixa</h3>
+
+<input id="contaNome" placeholder="nome">
+<input id="contaValor" type="number" placeholder="valor">
+<input id="contaVenc" type="number" placeholder="dia vencimento">
+
+<button onclick="salvarConta()">Salvar</button>
+
+<ul id="listaContas"></ul>
+
+</div>
+
+
+<div id="provisoes" class="section">
+
+<h3>Provisionamento</h3>
+
+<input id="provNome" placeholder="descrição">
+<input id="provValor" type="number" placeholder="valor total">
+<input id="provMes" placeholder="mes (2026-03)">
+
+<button onclick="salvarProv()">Salvar</button>
+
+<ul id="listaProv"></ul>
+
+</div>
+
+
+<div id="relatorio" class="section">
+
+<h3>Relatório Mensal</h3>
+
+<input id="mesRelatorio" placeholder="2026-03">
+
+<button onclick="relatorio()">Gerar</button>
+
+<h3 id="saldoMes"></h3>
+
+</div>
 
 </div>
 
@@ -103,29 +164,26 @@ padding:8px;
 
 import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
 
-import { 
+import {
 getAuth,
 createUserWithEmailAndPassword,
 signInWithEmailAndPassword,
 signOut,
 onAuthStateChanged
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
 
 import {
 getFirestore,
+doc,
+setDoc,
 collection,
 addDoc,
 query,
 where,
 getDocs
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
-
-import {
-getStorage,
-ref,
-uploadBytes,
-getDownloadURL
-} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
 
 
 
@@ -141,11 +199,8 @@ appId: "COLOQUE_AQUI"
 };
 
 const app = initializeApp(firebaseConfig);
-
 const auth = getAuth(app);
 const db = getFirestore(app);
-const storage = getStorage(app);
-
 
 let user;
 
@@ -160,7 +215,9 @@ user=u;
 document.getElementById("login").style.display="none";
 document.getElementById("app").style.display="block";
 
-carregar();
+carregarTransacoes();
+carregarContas();
+carregarProv();
 
 }else{
 
@@ -173,12 +230,65 @@ document.getElementById("app").style.display="none";
 
 
 
+window.mostrar = function(id){
+
+document.querySelectorAll(".section").forEach(s=>{
+s.classList.remove("active")
+})
+
+document.getElementById(id).classList.add("active")
+
+}
+
+
+
+async function criarEstruturaUsuario(uid,email){
+
+await setDoc(doc(db,"users",uid),{
+email:email,
+criadoEm:new Date()
+})
+
+await addDoc(
+collection(db,"users",uid,"contas"),
+{
+nome:"Conta principal",
+valor:0,
+vencimento:1
+}
+)
+
+await addDoc(
+collection(db,"users",uid,"transacoes"),
+{
+descricao:"Conta criada",
+valor:0,
+tipo:"entrada",
+data:new Date().toISOString().slice(0,10)
+}
+)
+
+await addDoc(
+collection(db,"users",uid,"provisionamentos"),
+{
+descricao:"Exemplo",
+valor:0,
+mes:"2026-01"
+}
+)
+
+}
+
+
+
 window.register = async function(){
 
-let email=document.getElementById("email").value;
-let password=document.getElementById("password").value;
+let email=document.getElementById("email").value
+let password=document.getElementById("password").value
 
-await createUserWithEmailAndPassword(auth,email,password);
+let cred = await createUserWithEmailAndPassword(auth,email,password)
+
+await criarEstruturaUsuario(cred.user.uid,email)
 
 }
 
@@ -186,10 +296,10 @@ await createUserWithEmailAndPassword(auth,email,password);
 
 window.login = async function(){
 
-let email=document.getElementById("email").value;
-let password=document.getElementById("password").value;
+let email=document.getElementById("email").value
+let password=document.getElementById("password").value
 
-await signInWithEmailAndPassword(auth,email,password);
+await signInWithEmailAndPassword(auth,email,password)
 
 }
 
@@ -197,89 +307,188 @@ await signInWithEmailAndPassword(auth,email,password);
 
 window.logout = async function(){
 
-await signOut(auth);
+await signOut(auth)
 
 }
 
 
 
-window.salvar = async function(){
+window.salvarTransacao = async function(){
 
-let descricao=document.getElementById("descricao").value;
-let valor=parseFloat(document.getElementById("valor").value);
-let tipo=document.getElementById("tipo").value;
-let data=document.getElementById("data").value;
+let descricao=document.getElementById("descricao").value
+let valor=parseFloat(document.getElementById("valor").value)
+let tipo=document.getElementById("tipo").value
+let data=document.getElementById("data").value
 
-await addDoc(collection(db,"transacoes"),{
-
-userId:user.uid,
+await addDoc(
+collection(db,"users",user.uid,"transacoes"),
+{
 descricao,
 valor,
 tipo,
 data
+}
+)
 
-})
-
-carregar()
+carregarTransacoes()
 
 }
 
 
 
-async function carregar(){
+async function carregarTransacoes(){
 
-let tbody=document.getElementById("lista");
-tbody.innerHTML="";
+let tbody=document.getElementById("lista")
+tbody.innerHTML=""
 
-let q=query(
-collection(db,"transacoes"),
-where("userId","==",user.uid)
-)
+const q=query(collection(db,"users",user.uid,"transacoes"))
 
-let snapshot=await getDocs(q);
-
-let total=0;
+let snapshot=await getDocs(q)
 
 snapshot.forEach(doc=>{
 
-let d=doc.data();
+let d=doc.data()
 
-let tr=document.createElement("tr");
+let tr=document.createElement("tr")
 
 tr.innerHTML=`
 <td>${d.descricao}</td>
 <td>${d.valor}</td>
 <td>${d.tipo}</td>
 <td>${d.data}</td>
-`;
+`
 
-tbody.appendChild(tr);
-
-if(d.tipo=="entrada") total+=d.valor;
-else total-=d.valor;
+tbody.appendChild(tr)
 
 })
 
-document.getElementById("total").innerText="Saldo: R$ "+total;
+}
+
+
+
+window.salvarConta = async function(){
+
+let nome=document.getElementById("contaNome").value
+let valor=parseFloat(document.getElementById("contaValor").value)
+let venc=document.getElementById("contaVenc").value
+
+await addDoc(
+collection(db,"users",user.uid,"contas"),
+{
+nome,
+valor,
+vencimento:venc
+}
+)
+
+carregarContas()
 
 }
 
 
 
-window.upload = async function(){
+async function carregarContas(){
 
-let file=document.getElementById("arquivo").files[0];
+let ul=document.getElementById("listaContas")
+ul.innerHTML=""
 
-let storageRef=ref(storage,"arquivos/"+user.uid+"/"+file.name);
+const q=query(collection(db,"users",user.uid,"contas"))
 
-await uploadBytes(storageRef,file);
+let snapshot=await getDocs(q)
 
-alert("arquivo enviado");
+snapshot.forEach(doc=>{
+
+let d=doc.data()
+
+let li=document.createElement("li")
+
+li.innerText=d.nome+" - R$ "+d.valor+" dia "+d.vencimento
+
+ul.appendChild(li)
+
+})
 
 }
 
+
+
+window.salvarProv = async function(){
+
+let descricao=document.getElementById("provNome").value
+let valor=parseFloat(document.getElementById("provValor").value)
+let mes=document.getElementById("provMes").value
+
+await addDoc(
+collection(db,"users",user.uid,"provisionamentos"),
+{
+descricao,
+valor,
+mes
+}
+)
+
+carregarProv()
+
+}
+
+
+
+async function carregarProv(){
+
+let ul=document.getElementById("listaProv")
+ul.innerHTML=""
+
+const q=query(collection(db,"users",user.uid,"provisionamentos"))
+
+let snapshot=await getDocs(q)
+
+snapshot.forEach(doc=>{
+
+let d=doc.data()
+
+let li=document.createElement("li")
+
+li.innerText=d.descricao+" - R$ "+d.valor+" ("+d.mes+")"
+
+ul.appendChild(li)
+
+})
+
+}
+
+
+
+window.relatorio = async function(){
+
+let mes=document.getElementById("mesRelatorio").value
+
+const q=query(
+collection(db,"users",user.uid,"transacoes")
+)
+
+let snapshot=await getDocs(q)
+
+let saldo=0
+
+snapshot.forEach(doc=>{
+
+let d=doc.data()
+
+if(d.data.startsWith(mes)){
+
+if(d.tipo=="entrada") saldo+=d.valor
+else saldo-=d.valor
+
+}
+
+})
+
+document.getElementById("saldoMes").innerText="Saldo do mês: R$ "+saldo
+
+}
 
 </script>
 
 </body>
 </html>
+```
