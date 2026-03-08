@@ -1,0 +1,285 @@
+<!DOCTYPE html>
+<html>
+<head>
+<meta charset="UTF-8">
+<title>Finance Manager</title>
+
+<style>
+
+body{
+font-family: Arial;
+background:#f2f2f2;
+padding:40px;
+}
+
+.container{
+background:white;
+padding:30px;
+border-radius:10px;
+max-width:900px;
+margin:auto;
+}
+
+input,button{
+padding:10px;
+margin:5px;
+}
+
+table{
+width:100%;
+margin-top:20px;
+border-collapse:collapse;
+}
+
+td,th{
+border:1px solid #ddd;
+padding:8px;
+}
+
+</style>
+</head>
+
+<body>
+
+<div class="container">
+
+<h2>Finance Manager</h2>
+
+<div id="login">
+
+<input id="email" placeholder="email">
+<input id="password" type="password" placeholder="senha">
+
+<button onclick="register()">Registrar</button>
+<button onclick="login()">Entrar</button>
+
+</div>
+
+<div id="app" style="display:none">
+
+<h3>Nova Transação</h3>
+
+<input id="descricao" placeholder="descrição">
+<input id="valor" type="number" placeholder="valor">
+
+<select id="tipo">
+<option value="entrada">Receita</option>
+<option value="saida">Despesa</option>
+</select>
+
+<input id="data" type="date">
+
+<button onclick="salvar()">Salvar</button>
+
+<h3>Upload de boleto / fatura</h3>
+
+<input type="file" id="arquivo">
+<button onclick="upload()">Upload</button>
+
+<h3>Relatório</h3>
+
+<table>
+<thead>
+<tr>
+<th>Descrição</th>
+<th>Valor</th>
+<th>Tipo</th>
+<th>Data</th>
+</tr>
+</thead>
+<tbody id="lista"></tbody>
+</table>
+
+<h3 id="total"></h3>
+
+<button onclick="logout()">Sair</button>
+
+</div>
+
+</div>
+
+
+<script type="module">
+
+import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import { 
+getAuth,
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword,
+signOut,
+onAuthStateChanged
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+getFirestore,
+collection,
+addDoc,
+query,
+where,
+getDocs
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+import {
+getStorage,
+ref,
+uploadBytes,
+getDownloadURL
+} from "https://www.gstatic.com/firebasejs/10.7.1/firebase-storage.js";
+
+
+
+const firebaseConfig = {
+
+apiKey: "COLOQUE_AQUI",
+authDomain: "COLOQUE_AQUI",
+projectId: "COLOQUE_AQUI",
+storageBucket: "COLOQUE_AQUI",
+messagingSenderId: "COLOQUE_AQUI",
+appId: "COLOQUE_AQUI"
+
+};
+
+const app = initializeApp(firebaseConfig);
+
+const auth = getAuth(app);
+const db = getFirestore(app);
+const storage = getStorage(app);
+
+
+let user;
+
+
+
+onAuthStateChanged(auth,(u)=>{
+
+if(u){
+
+user=u;
+
+document.getElementById("login").style.display="none";
+document.getElementById("app").style.display="block";
+
+carregar();
+
+}else{
+
+document.getElementById("login").style.display="block";
+document.getElementById("app").style.display="none";
+
+}
+
+})
+
+
+
+window.register = async function(){
+
+let email=document.getElementById("email").value;
+let password=document.getElementById("password").value;
+
+await createUserWithEmailAndPassword(auth,email,password);
+
+}
+
+
+
+window.login = async function(){
+
+let email=document.getElementById("email").value;
+let password=document.getElementById("password").value;
+
+await signInWithEmailAndPassword(auth,email,password);
+
+}
+
+
+
+window.logout = async function(){
+
+await signOut(auth);
+
+}
+
+
+
+window.salvar = async function(){
+
+let descricao=document.getElementById("descricao").value;
+let valor=parseFloat(document.getElementById("valor").value);
+let tipo=document.getElementById("tipo").value;
+let data=document.getElementById("data").value;
+
+await addDoc(collection(db,"transacoes"),{
+
+userId:user.uid,
+descricao,
+valor,
+tipo,
+data
+
+})
+
+carregar()
+
+}
+
+
+
+async function carregar(){
+
+let tbody=document.getElementById("lista");
+tbody.innerHTML="";
+
+let q=query(
+collection(db,"transacoes"),
+where("userId","==",user.uid)
+)
+
+let snapshot=await getDocs(q);
+
+let total=0;
+
+snapshot.forEach(doc=>{
+
+let d=doc.data();
+
+let tr=document.createElement("tr");
+
+tr.innerHTML=`
+<td>${d.descricao}</td>
+<td>${d.valor}</td>
+<td>${d.tipo}</td>
+<td>${d.data}</td>
+`;
+
+tbody.appendChild(tr);
+
+if(d.tipo=="entrada") total+=d.valor;
+else total-=d.valor;
+
+})
+
+document.getElementById("total").innerText="Saldo: R$ "+total;
+
+}
+
+
+
+window.upload = async function(){
+
+let file=document.getElementById("arquivo").files[0];
+
+let storageRef=ref(storage,"arquivos/"+user.uid+"/"+file.name);
+
+await uploadBytes(storageRef,file);
+
+alert("arquivo enviado");
+
+}
+
+
+</script>
+
+</body>
+</html>
