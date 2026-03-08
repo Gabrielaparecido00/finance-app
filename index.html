@@ -1,58 +1,286 @@
-<!DOCTYPE html> <html lang="pt-br"> <head> <meta charset="UTF-8"> <meta name="viewport" content="width=device-width,initial-scale=1"> <title>Finance App</title> <script src="https://cdn.tailwindcss.com"></script> <script src="https://cdn.jsdelivr.net/npm/chart.js"></script> <style> body{ background:#0f172a; color:white; font-family:sans-serif; } .card{ background:#1e293b; border-radius:18px; padding:18px; } .menu{ position:fixed; left:0; top:0; height:100%; width:220px; background:#020617; padding:20px; } .menu button{ display:block; margin-bottom:10px; width:100%; text-align:left; } .content{ margin-left:230px; padding:20px; } </style> </head> <body> <div id="login" class="max-w-md mx-auto mt-20 card"> <h2 class="text-2xl mb-4 text-purple-400">Finance Login</h2> <input id="email" placeholder="email" class="w-full p-3 mb-2 rounded text-black"> <input id="password" type="password" placeholder="senha" class="w-full p-3 mb-2 rounded text-black"> <button onclick="register()" class="bg-purple-600 p-3 w-full rounded mb-2"> Registrar </button> <button onclick="login()" class="bg-green-600 p-3 w-full rounded"> Entrar </button> </div> <div id="app" style="display:none"> <div class="menu"> <h2 class="text-xl mb-4 text-purple-400">Finance</h2>
+<!DOCTYPE html>
 
-<button onclick="page('dashboard')">Dashboard</button>
-<button onclick="page('extrato')">Extrato</button>
-<button onclick="page('bancos')">Bancos</button>
-<button onclick="page('recorrentes')">Recorrentes</button>
-<button onclick="page('provisoes')">Provisões</button>
-<button onclick="page('investimentos')">Investimentos</button>
+<html lang="pt-br">
 
-<button onclick="logout()" class="mt-10 text-red-400"> Sair </button> </div> <div class="content"> <div id="dashboard" class="page"> <div class="card mb-6"> <h2 class="text-gray-400">Saldo total</h2> <h1 id="saldoTotal" class="text-4xl text-green-400">R$0</h1> </div> <div class="card">
+<head>
 
-<canvas id="grafico"></canvas>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width,initial-scale=1">
 
-</div> </div> <div id="extrato" class="page hidden"> <div class="card"> <h3 class="text-purple-400 mb-2">Extrato por período</h3> <input id="dataInicio" type="date" class="p-2 text-black rounded"> <input id="dataFim" type="date" class="p-2 text-black rounded"> <button onclick="filtrarExtrato()" class="bg-purple-600 p-2 rounded"> Filtrar </button> <ul id="listaExtrato" class="mt-4"></ul> </div> </div> <div id="bancos" class="page hidden"> <div class="card mb-4"> <h3 class="text-blue-400">Adicionar banco</h3>
+<title>Finance App</title>
 
-<input id="bancoNome" placeholder="Banco" class="p-2 rounded text-black">
+<script src="https://cdn.tailwindcss.com"></script>
 
-<input id="bancoSaldo" type="number" placeholder="Saldo inicial" class="p-2 rounded text-black">
+<style>
 
-<button onclick="salvarBanco()" class="bg-blue-600 p-2 rounded">
-Salvar
+body{
+background:#0f172a;
+color:white;
+font-family:sans-serif;
+}
+
+.card{
+background:#1e293b;
+border-radius:18px;
+padding:18px;
+}
+
+.menu{
+position:fixed;
+left:0;
+top:0;
+height:100%;
+width:220px;
+background:#020617;
+padding:20px;
+}
+
+.menu button{
+display:block;
+margin-bottom:10px;
+width:100%;
+text-align:left;
+}
+
+.content{
+margin-left:230px;
+padding:20px;
+}
+
+</style>
+
+</head>
+
+<body>
+
+<div id="login" class="max-w-md mx-auto mt-20 card">
+
+<h2 class="text-2xl mb-4 text-purple-400">Finance Login</h2>
+
+<input id="email" placeholder="email" class="w-full p-3 mb-2 rounded text-black">
+
+<input id="password" type="password" placeholder="senha" class="w-full p-3 mb-2 rounded text-black">
+
+<button onclick="register()" class="bg-purple-600 p-3 w-full rounded mb-2">
+Registrar
 </button>
 
-</div> <ul id="listaBancos"></ul> </div> <div id="recorrentes" class="page hidden"> <div class="card"> <h3 class="text-blue-400">Conta recorrente</h3>
-
-<input id="recNome" placeholder="nome" class="p-2 rounded text-black">
-
-<input id="recValor" type="number" class="p-2 rounded text-black">
-
-<input id="recDia" type="number" placeholder="dia" class="p-2 rounded text-black">
-
-<button onclick="salvarRecorrente()" class="bg-blue-600 p-2 rounded">
-Salvar
+<button onclick="login()" class="bg-green-600 p-3 w-full rounded">
+Entrar
 </button>
 
-<ul id="listaRec"></ul> </div> </div> <div id="provisoes" class="page hidden"> <div class="card"> <h3 class="text-yellow-400">Provisionamento</h3>
+</div>
 
-<input id="provNome" placeholder="nome" class="p-2 rounded text-black">
+<div id="app" style="display:none">
 
-<input id="provValor" type="number" class="p-2 rounded text-black">
+<div class="menu">
 
-<input id="provMes" placeholder="2026-03" class="p-2 rounded text-black">
+<h2 class="text-xl mb-4 text-purple-400">Finance</h2>
 
-<button onclick="salvarProv()" class="bg-yellow-500 p-2 rounded">
-Salvar
+<button onclick="page('dashboard')">Dashboard</button> <button onclick="page('bancos')">Bancos</button>
+
+<button onclick="logout()" class="mt-10 text-red-400">
+Sair
 </button>
 
-<ul id="listaProv"></ul> </div> </div> <div id="investimentos" class="page hidden"> <div class="card"> <h3 class="text-green-400">Investimento</h3>
+</div>
 
-<input id="invNome" placeholder="ativo" class="p-2 rounded text-black">
+<div class="content">
 
-<input id="invValor" type="number" class="p-2 rounded text-black">
+<div id="dashboard" class="page">
 
-<button onclick="salvarInvest()" class="bg-green-600 p-2 rounded">
-Salvar
-</button>
+<div class="card mb-6">
 
-<ul id="listaInv"></ul> </div> </div> </div> </div> <script type="module"> import { initializeApp } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js"; import { getAuth, createUserWithEmailAndPassword, signInWithEmailAndPassword, signOut, onAuthStateChanged } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js"; import { getFirestore, doc, setDoc, collection, addDoc, query, getDocs } from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js"; const firebaseConfig = { apiKey: "AIzaSyBOQwW7UlpweLNtCOsAUFY7Ds7KaxW8P9U", authDomain: "finance-app-15fcc.firebaseapp.com", projectId: "finance-app-15fcc", storageBucket: "finance-app-15fcc.firebasestorage.app", messagingSenderId: "1074672383107", appId: "1:1074672383107:web:666b30885a928f3a8b57b6", measurementId: "G-8LBL427YR0" }; const app = initializeApp(firebaseConfig) const auth = getAuth(app) const db = getFirestore(app) let user let chart onAuthStateChanged(auth,(u)=>{ if(u){ user=u document.getElementById("login").style.display="none" document.getElementById("app").style.display="block" carregarDashboard() } }) window.page=function(p){ document.querySelectorAll(".page") .forEach(x=>x.classList.add("hidden")) document.getElementById(p) .classList.remove("hidden") } window.register=async function(){ let cred = await createUserWithEmailAndPassword( auth, document.getElementById("email").value, document.getElementById("password").value ) await setDoc(doc(db,"users",cred.user.uid),{ email:document.getElementById("email").value }) } window.login=async function(){ await signInWithEmailAndPassword( auth, document.getElementById("email").value, document.getElementById("password").value ) } window.logout=async function(){ await signOut(auth) } window.salvarBanco=async function(){ await addDoc(collection(db,"users",user.uid,"bancos"),{ nome:document.getElementById("bancoNome").value, saldo:parseFloat(document.getElementById("bancoSaldo").value) }) } window.salvarRecorrente=async function(){ await addDoc(collection(db,"users",user.uid,"recorrentes"),{ nome:document.getElementById("recNome").value, valor:parseFloat(document.getElementById("recValor").value), dia:parseInt(document.getElementById("recDia").value) }) } window.salvarProv=async function(){ await addDoc(collection(db,"users",user.uid,"provisoes"),{ nome:document.getElementById("provNome").value, valor:parseFloat(document.getElementById("provValor").value), mes:document.getElementById("provMes").value }) } window.salvarInvest=async function(){ await addDoc(collection(db,"users",user.uid,"investimentos"),{ nome:document.getElementById("invNome").value, valor:parseFloat(document.getElementById("invValor").value) }) } async function carregarDashboard(){ let saldo=0 const q=query(collection(db,"users",user.uid,"bancos")) let snap=await getDocs(q) snap.forEach(doc=>{ saldo+=doc.data().saldo }) document.getElementById("saldoTotal").innerText="R$ "+saldo } </script> </body> </html>
+<h2 class="text-gray-400">Saldo total</h2>
+
+<h1 id="saldoTotal" class="text-4xl text-green-400">
+R$0
+</h1>
+
+</div>
+
+</div>
+
+<div id="bancos" class="page hidden">
+
+<div class="card mb-4">
+
+<h3 class="text-blue-400">Adicionar banco</h3>
+
+<input id="bancoNome"
+placeholder="Banco"
+class="p-2 rounded text-black">
+
+<input id="bancoSaldo"
+type="number"
+placeholder="Saldo inicial"
+class="p-2 rounded text-black">
+
+<button onclick="salvarBanco()"
+class="bg-blue-600 p-2 rounded">
+Salvar </button>
+
+</div>
+
+<ul id="listaBancos"></ul>
+
+</div>
+
+</div>
+
+</div>
+
+<script type="module">
+
+import { initializeApp }
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-app.js";
+
+import {
+getAuth,
+createUserWithEmailAndPassword,
+signInWithEmailAndPassword,
+signOut,
+onAuthStateChanged
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-auth.js";
+
+import {
+getFirestore,
+doc,
+setDoc,
+collection,
+addDoc,
+query,
+getDocs
+}
+from "https://www.gstatic.com/firebasejs/10.7.1/firebase-firestore.js";
+
+
+const firebaseConfig = {
+
+apiKey: "AIzaSyBOQwW7UlpweLNtCOsAUFY7Ds7KaxW8P9U",
+authDomain: "finance-app-15fcc.firebaseapp.com",
+projectId: "finance-app-15fcc",
+storageBucket: "finance-app-15fcc.firebasestorage.app",
+messagingSenderId: "1074672383107",
+appId: "1:1074672383107:web:666b30885a928f3a8b57b6",
+measurementId: "G-8LBL427YR0"
+
+};
+
+
+const appFirebase = initializeApp(firebaseConfig)
+const auth = getAuth(appFirebase)
+const db = getFirestore(appFirebase)
+
+let user
+
+
+
+onAuthStateChanged(auth,(u)=>{
+
+if(u){
+
+user=u
+
+document.getElementById("login").style.display="none"
+document.getElementById("app").style.display="block"
+
+carregarDashboard()
+
+}
+
+})
+
+
+
+window.page = function(p){
+
+document.querySelectorAll(".page")
+.forEach(x=>x.classList.add("hidden"))
+
+document.getElementById(p)
+.classList.remove("hidden")
+
+}
+
+
+
+window.register = async function(){
+
+const email = document.getElementById("email").value
+const password = document.getElementById("password").value
+
+let cred = await createUserWithEmailAndPassword(
+auth,
+email,
+password
+)
+
+await setDoc(doc(db,"users",cred.user.uid),{
+email:email
+})
+
+}
+
+
+
+window.login = async function(){
+
+const email = document.getElementById("email").value
+const password = document.getElementById("password").value
+
+await signInWithEmailAndPassword(
+auth,
+email,
+password
+)
+
+}
+
+
+
+window.logout = async function(){
+
+await signOut(auth)
+
+}
+
+
+
+window.salvarBanco = async function(){
+
+const nome = document.getElementById("bancoNome").value
+const saldo = parseFloat(document.getElementById("bancoSaldo").value)
+
+await addDoc(collection(db,"users",user.uid,"bancos"),{
+nome:nome,
+saldo:saldo
+})
+
+carregarDashboard()
+
+}
+
+
+
+async function carregarDashboard(){
+
+let saldo = 0
+
+const q = query(collection(db,"users",user.uid,"bancos"))
+
+let snap = await getDocs(q)
+
+snap.forEach(doc=>{
+saldo += doc.data().saldo
+})
+
+document.getElementById("saldoTotal").innerText="R$ "+saldo
+
+}
+
+</script>
+
+</body>
+</html>
