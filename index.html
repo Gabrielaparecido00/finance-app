@@ -115,6 +115,54 @@
 </head>
 <body class="min-h-screen">
 
+  <header class="lg:hidden glass p-4 flex items-center justify-between sticky top-0 z-40">
+
+<button onclick="toggleMenu()" class="text-2xl">
+☰
+</button>
+
+<div class="font-bold text-violet-300">
+Finance Hub
+</div>
+
+<button onclick="openPage('transacoes')" class="text-xl">
++
+</button>
+
+</header>
+
+
+  <div id="mobileMenu" class="fixed inset-0 bg-black/60 hidden z-50">
+
+<div class="w-[260px] h-full bg-[#0b1020] p-6">
+
+<div class="flex justify-between mb-6">
+
+<div class="text-xl font-bold text-violet-300">
+Finance Hub
+</div>
+
+<button onclick="toggleMenu()">✕</button>
+
+</div>
+
+<nav class="space-y-2">
+
+<button class="sidebar-btn" onclick="openPage('dashboard');toggleMenu()">Dashboard</button>
+<button class="sidebar-btn" onclick="openPage('transacoes');toggleMenu()">Transações</button>
+<button class="sidebar-btn" onclick="openPage('cartoes');toggleMenu()">Cartões</button>
+<button class="sidebar-btn" onclick="openPage('investimentos');toggleMenu()">Investimentos</button>
+<button class="sidebar-btn" onclick="openPage('recorrentes');toggleMenu()">Recorrentes</button>
+<button class="sidebar-btn" onclick="openPage('extrato');toggleMenu()">Extrato</button>
+<button class="sidebar-btn" onclick="openPage('openfinance');toggleMenu()">Open Finance</button>
+<button class="sidebar-btn" onclick="openPage('contas');toggleMenu()">Contas</button>
+
+<button class="sidebar-btn" onclick="logoutUser()">Sair</button>
+
+</nav>
+
+</div>
+</div>
   <div id="authScreen" class="min-h-screen flex items-center justify-center p-4">
     <div class="glass w-full max-w-md p-6 sm:p-8">
       <div class="mb-6">
@@ -1114,6 +1162,13 @@
     window.saveTransaction = saveTransaction;
     window.renderStatement = renderStatement;
     window.toggleOrigemCampos = toggleOrigemCampos;
+
+    function toggleMenu(){
+const menu=document.getElementById("mobileMenu");
+if(!menu)return;
+menu.classList.toggle("hidden");
+}
+    
   </script>
 </body>
 </html>
